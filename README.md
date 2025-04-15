@@ -1,4 +1,3 @@
-# Maze Solver Implementation Report
 ## Question 1:
 ## Algorithm Utilized
 The maze explorer uses the right-hand rule algorithm whereby the explorer keeps its right hand against the wall as it navigates the maze. It initially attempts to move to the right. If right is blocked, it moves forward, and if forward is blocked as well, it turns left. The explorer backtracks only when it has exhausted all possible moves. This strategy ensures that it will locate the exit if the maze is completely connected without isolated regions.
@@ -16,7 +15,7 @@ The explorer prints the following performance metrics when it exits the maze:
 - Number of backtrack operations
 - Average moves per second
 
-### Example Output (Non-visualized):
+### Example Output (Non-visualize):
 ```yaml
 Total time elapsed: 0.00 seconds
 Number of moves made: 1279
@@ -24,7 +23,7 @@ Number of backtrack operations: 0
 Average moves per second: 1002900.51
 ```
 
-### Example Output (Visualized):
+### Example Output (Visualize):
 ```yaml
 Total time elapsed: 42.36 seconds
 Number of moves made: 1279
@@ -36,8 +35,8 @@ Time difference is due to the visualization overhead, which adds delays for rend
 
 ## Observations
 I ran the automated explorer in two modes:
-- Non-visual mode: `python main.py --type static --auto`
-- Visual mode: `python main.py --type static --auto --visualize`
+- Non-visual mode: `python main.py --type static`
+- Visual mode: `python main.py --type static --visualize`
 
 The explorer discovered the solution to the static maze in 1279 moves without going back. The visual mode was approximately 42 seconds as a function of the screen update time, and the non-visual mode took practically no time. The result suggests that performance difference is caused by rendering time in the visual mode and not inefficiencies in the algorithm.
 
@@ -58,7 +57,7 @@ Key steps:
 ### Summary of Results:
 When running the program with the following command:
 ```
-mpiexec -n 4 python main.py
+mpiexec -n 4 python main.py this is random (but for static maze the output is in question 3) 
 ```
 
 ```
@@ -155,7 +154,7 @@ if __name__ == "__main__":
    - All the adventurers performed exactly 1279 moves, which implies that the algorithm for solving the maze is consistent in all the parallel processes. Since the maze does not change, the number of moves is the same for all the adventurers.
 
 3. Backtrack Operations:
-   - Backtrack operations count 0 for each explorer, suggesting that the solution algorithm (potentially a variant of the right-hand rule or A*) was good enough to never get stuck in dead ends.
+   - Backtrack operations count 0 for each explorer, suggesting that the solution algorithm was good enough to never get stuck in dead ends.
 
 ### Key Insight:
 - Consistency: Since the maze is not dynamic, outcomes between all explorers were identical with respect to moves and backtracking, ensuring that all explorers took the same path to solve the maze.
@@ -217,22 +216,65 @@ Best Explorer: Explorer 0 solved the maze in 1279 moves in 0.00 seconds.
 ```
 
 ## Question 4:
-### 1. Limitations Identified:
-- Current explorer is applying the right-hand rule and reactive backtracking.
-- It is not goal-aware and suboptimal in its decision-making.
-- It can back-track cells unnecessarily and takes long paths.
 
-### 2. Improvements Proposed:
-- Use Breadth-First Search to find smarter back-tracking paths.
-- Make the explorer goal-aware and favor movement in the direction of the goal.
+## Identified Limitations of the Original Maze Explorer
 
-### 3. Implementation (Summary):
-- Supported BFS in find_backtrack_path() over naive move-history unwinding.
-- Fixed direction selection in solve() to prefer directions lowering distance towards the goal.
+The original version of the `Explorer` class used a **right-hand rule** algorithm with a custom backtracking mechanism. While functional, it exhibits several significant limitations:
 
-### 4. Benefits:
-- Reduced looping and wandering unnecessarily.
-- Quicker pathfinding with greater sense and no loss of original class structure and visualizations.
+1. **Inefficient Pathfinding**  
+   The right-hand rule is a local, rule-based method that does not take into account the overall layout of the maze. It often explores irrelevant or longer paths before reaching the goal. This makes the solution inefficient, especially for large or open mazes.
+
+2. **No Shortest Path Guarantee**  
+   This approach does not guarantee that the path found is the shortest. It may eventually reach the goal, but the solution could be far from optimal in terms of the number of steps taken.
+
+3. **Dependence on Backtracking**  
+   The algorithm heavily relies on backtracking to recover from dead ends. This results in extra logic for tracking move history and manually finding previous fork points, which can slow down the solving process and increase complexity.
+
+4. **Looping and Repetition Risk**  
+   The explorer can revisit the same positions repeatedly, especially in mazes with cycles or open spaces. Although it uses a short move history to detect loops, this method is not robust and may fail to prevent infinite loops in certain configurations.
+
+## Proposed Improvements
+
+To address these limitations and improve the performance and reliability of the maze solver, the following enhancements were proposed:
+
+### 1. **Implement Breadth-First Search (BFS)**
+Replace the right-hand rule algorithm with **Breadth-First Search (BFS)**. BFS is a graph traversal algorithm that explores nodes level by level and guarantees the shortest path in unweighted mazes. Unlike the original algorithm, **BFS does not require any form of backtracking**, because it systematically expands the search frontier and never revisits nodes.
+
+### 2. **Track Visited Nodes Using a Set**
+Introduce a `visited` set to efficiently track which maze cells have already been explored. This ensures that the solver does not revisit the same cell and avoids redundant computation, making the traversal more efficient.
+
+## Optional Improvements
+
+Additional improvements that were considered (but not necessarily implemented in this iteration) include:
+
+* **Separation of visualization and logic** for improved modularity and easier testing.
+* **Tracking additional statistics**, such as total nodes explored or memory usage.
+
+## Implemented Enhancements
+
+The following two core enhancements were successfully implemented in the improved maze explorer:
+
+### **Breadth-First Search (BFS) Integration**
+* BFS explores all possible paths level by level, ensuring that the **shortest path** to the goal is found.
+* Unlike the previous method, BFS does **not require backtracking** because it avoids dead ends by design.
+* It naturally avoids loops and unnecessary movements, making it far more efficient and reliable.
+
+### **Efficient Visited Node Tracking**
+* A `visited` set was introduced to track which cells have already been processed.
+* This ensures that nodes are never revisited, avoiding infinite loops and reducing the number of unnecessary steps.
+
+## Outcome and Benefits
+
+With these enhancements, the new maze explorer offers significant advantages over the original version:
+
+* **Guaranteed shortest path** in all solvable mazes (unweighted).
+* **No need for manual backtracking**, simplifying the logic and improving performance.
+* **Faster execution** and reduced move count, especially in large or complex mazes.
+* **Improved scalability** due to systematic and efficient traversal.
+
+## Conclusion
+
+By replacing the right-hand rule and backtracking logic with a robust **BFS-based algorithm**, the maze explorer has become significantly more efficient and intelligent. These improvements resolve the main limitations of the original design and provide a solid foundation for future extensions.
 
 ### Code for q4:
 ```python
@@ -426,10 +468,10 @@ Best Explorer: Explorer 1 solved the maze in 74 moves in 0.00 seconds.
 ## Question 5: Performance Comparison and Analysis
 
 ### 1. Performance Comparison Results and Analysis
-The performance of the enhanced BFS-based explorer was compared with the basic explorer that used the right-hand wall-following rule. Both were experimented on the same static maze configuration in non-visual and visual modes.
+The performance of the enhanced BFS-based explorer was compared with the basic explorer that used the right-hand wall-following rule. Both were experimented on the same static maze configuration.
 
 **Original Explorer (Right-Hand Rule):**
-- Time taken: 0.00 seconds (non-visual mode), approximately 42 seconds (visual mode).
+- Time taken: 0.00 seconds, approximately 42 seconds (when doing --visualize).
 - Total moves made: 1279.
 - Backtrack operations: 0 (backtracking logic implemented but not used in this test).
 - Average moves per second: Over 650,000 in non-visual mode.
@@ -446,11 +488,11 @@ The performance of the enhanced BFS-based explorer was compared with the basic e
 - The enhanced explorer finished the maze with only 128 moves, an impressive reduction from the 1279 of the original.
 - BFS was also much quicker, reducing moves by over 90%.
 - The simple method used a lot of steps navigating dead ends or up walls.
-- There were virtually no differences in time in non-visual mode, but in visual mode, the original method was demonstrated to have higher delays since it updated the screen in real time.
+- There were virtually no differences in time in non-visual mode, 
 - Both adventurers completed the maze successfully, but BFS was clearly more efficient.
 
 ### 3. Visuals
-I had an issue with visualizing the maze on my device 
+I had an issue with visualizing the maze on my device im sorryyyyy
 
 ### 3. Trade-offs and New Limitations Introduced
 While the implementation of BFS is more efficient and easier than the original, it also creates a couple of trade-offs:
@@ -473,4 +515,4 @@ The enhanced explorer with Breadth-First Search significantly enhances maze-solv
 Although it sacrifices some of the human-like and realistic exploration behavior, the BFS algorithm is much more practical to use in optimized automated solving and is highly recommended for academic or performance situations.
 
 ## Question 6:
-I scored 128 moves
+I scored 128 moves, and also a solution with no backtracking since I used BFS! 
