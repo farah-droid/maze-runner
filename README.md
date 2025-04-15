@@ -416,6 +416,7 @@ Explorer  3: Time =   0.00s | Moves =  128
 -------------------------------
 Best Explorer: Explorer 0 solved the maze in 0.00 seconds with 128 moves.
 
+-------------------------------
 (farahparallel) student@vg-DSAI-3202-20:~/Farah-Parallel-and-distributed-comp/maze-runner$ mpiexec -n 4 python main.py
 pygame 2.6.1 (SDL 2.28.4, Python 3.12.2)
 Hello from the pygame community. https://www.pygame.org/contribute.html
@@ -462,7 +463,7 @@ Explorer  2: Time =   0.00s | Moves =   85
 Explorer  3: Time =   0.00s | Moves =   76
 
 -------------------------------
-Best Explorer: Explorer 1 solved the maze in 74 moves in 0.00 seconds.
+Best Explorer: Explorer 1 solved the maze in 74 moves in 0.00 seconds. (this is with random)
 ```
 
 ## Question 5: Performance Comparison and Analysis
